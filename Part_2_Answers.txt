@@ -1,0 +1,14 @@
+Unsafe coding practices violate the trust users place in software systems because it doesn't live up to their expectations that their personal information and data would be stored in a confidential and secure manner.
+
+If this code was used in a real-world application, it could leave the users' privacy and security at risk of being breached, as the insecurities in the code, such as the buffer size and plaintext storage, could allow a malicious coder to find and steal the users' data.
+
+If a developer knowingly writes insecure code, they would be violating the principles of prioritizing public safety and security over speed and convenience and diminishing their professional integrity.
+
+IEEE Principle 1.01; The engineer should be prioritizing public safety, health, and welfare in their code, but they haven't due to the inclusion of these vulnerabilities in their code.
+IEEE Principle 1.04; The engineer should be avoiding wrongful acts that could cause serious harm to others, but they haven't by deploying easily exploitable software that can leak their sensitive data.
+
+Bad Actors can exploit the "gets" function via buffer overflow to inject malicious code, and the plaintext storage allows anyone with memory access to read user passwords directly.
+
+Attacks such as credential stuffing and unauthorized account takeovers could be performed, which could result in major privacy breaches for users and major reputational and financial losses for organizations.
+
+Commercial development of software with large known vulnerabilities can expose developers at companies to heavy legal liabilities, including lawsuits for negligence, breach of contract, or substantial regulatory fines for failing to protect user data.
