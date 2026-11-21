@@ -2,15 +2,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-//Partners: Benjamin Hoehn, William Randolph
-
 // Enumerations
 typedef enum { EMPTY, MONSTER, TREASURE } RoomType;
 
 // Structures
 typedef struct Room {
     RoomType type;
-    int value;
+    int value; 
     struct Room *next;
 } Room;
 
@@ -18,6 +16,7 @@ typedef struct {
     char* name;
     int strength;
     int health;
+    int coins;
 } Player;
 
 // Function Prototypes
@@ -25,8 +24,8 @@ Room* createRoom(int index);
 Room* createDungeon(int numRooms);
 void deleteDungeon(Room *dungeon);
 void displayRoom(const Room* room);
-void playerAction(Player* player, Room* room);
-void fightMonster(Player* player, int monsterStrength);
+void playerAction(Player* player, Room* room, int roomIndex);
+void fightMonster(Player* player, int monsterStrength, int roomLevel);
 void gameLoop(Player* player, Room *dungeonHead);
 void playGame(int numRooms);
 
@@ -52,9 +51,16 @@ int main(int argc, char *argv[]) {
 Room* createRoom(int index) {
     Room *room = malloc(sizeof(Room));
     room->type = rand() % 3; // Randomly assign room type
-    // Randomly assign room value based on room type 
-    // (10-60 for coins treasure, 10-50 strength for monster)
-    room->value = (room->type == MONSTER) ? (rand() % 5 + 1) * 10 : (rand() % 50 + 10);
+    
+    // Progressive difficulty: Scale monster strength and treasure value based on room depth (index)
+    if (room->type == MONSTER) {
+        room->value = ((rand() % 5 + 1) * 10) + (index * 5); // Base strength + depth scaling
+    } else if (room->type == TREASURE) {
+        room->value = ((rand() % 50 + 10)) + (index * 10);   // Base coins + depth scaling
+    } else {
+        room->value = 0; // Empty room
+    }
+    
     room->next = NULL;
     return room;
 }
@@ -87,13 +93,14 @@ void displayRoom(const Room* room) {
     printf("You enter %s.\n", roomType);
 }
 
-void playerAction(Player* player, Room* room) {
+void playerAction(Player* player, Room* room, int roomIndex) {
     switch (room->type) {
         case MONSTER:
-            fightMonster(player, room->value);
+            fightMonster(player, room->value, roomIndex + 1);
             break;
         case TREASURE:
-            printf("You found a treasure worth %d coins!\n", room->value);
+            player->coins += room->value; // Update player's coin count
+            printf("You found a treasure worth %d coins! Total coins: %d\n", room->value, player->coins);
             break;
         case EMPTY:
             printf("There's nothing here...\n");
@@ -101,19 +108,41 @@ void playerAction(Player* player, Room* room) {
     }
 }
 
-void fightMonster(Player* player, int monsterStrength) {
-    // Simple fight mechanism: if player's strength is higher, they win.
+void fightMonster(Player* player, int monsterStrength, int roomLevel) {
+    int fleeFee = roomLevel * 10; 
+    int choice = 1;
+
     printf("A monster appears! It has a strength of %d!\n", monsterStrength);
+    printf("Choose your action:\n");
+    printf("1. Fight\n");
+    printf("2. Flee (Cost: %d coins)\n", fleeFee);
+    printf("Enter your choice: ");
+    
+    if (scanf("%d", &choice) != 1) {
+        choice = 1; // Default to fighting if input is invalid
+    }
+
+    if (choice == 2) {
+        if (player->coins >= fleeFee) {
+            player->coins -= fleeFee;
+            printf("You successfully fled from the monster, paying a fee of %d coins. Remaining coins: %d\n", fleeFee, player->coins);
+            return; // Successfully fled without combat or health loss
+        } else {
+            printf("You cannot afford the flee fee (%d coins required, you have %d)! You are forced to fight!\n", fleeFee, player->coins);
+        }
+    }
+
+    // Combat mechanism
     if (player->strength >= monsterStrength) {
         printf("You defeated the monster!\n");
     } else {
-        printf("The monster overpowers you. You flee back to the previous room.\n");
+        printf("The monster overpowers you. You flee back, taking damage.\n");
         player->health -= monsterStrength;
         if (player->health <= 0) {
             printf("You have died...\n");
             return;
         } else {
-            printf("You survived the encounter, but you are wounded.\n");
+            printf("You survived the encounter, but you are wounded. Current Health: %d\n", player->health);
         }
     }
 }
@@ -122,9 +151,11 @@ void gameLoop(Player* player, Room *dungeonHead) {
     Room *currentRoom = dungeonHead;
     int roomIndex = 0;
     while (currentRoom != NULL && player->health > 0) {
+        printf("\n----------------------------------------\n");
         printf("You are in room %d.\n", roomIndex + 1);
         displayRoom(currentRoom);
-        playerAction(player, currentRoom);
+        playerAction(player, currentRoom, roomIndex);
+        
         if (player->health <= 0) {
             printf("%s has fallen in battle...\n", player->name);
             break;
@@ -133,7 +164,7 @@ void gameLoop(Player* player, Room *dungeonHead) {
         roomIndex++;
     }
     if (player->health > 0) {
-        printf("Congratulations, %s! You've cleared the dungeon!\n", player->name);
+        printf("\nCongratulations, %s! You've cleared the dungeon with %d coins remaining!\n", player->name, player->coins);
     }
 }
 
@@ -142,9 +173,9 @@ void playGame(int numRooms) {
 
     Room *dungeonHead = createDungeon(numRooms); // Create the dungeon
 
-    Player player = {"Adventurer", 20, 100}; // Create a player with 20 strength and 100 health
+    Player player = {"Adventurer", 20, 100, 0}; // Name, strength, health, starting coins
 
     gameLoop(&player, dungeonHead); // Start the game loop
 
-    deleteDungeon(dungeonHead); // Cleanup
+    deleteDungeon(dungeonHead); // Cleanup memory
 }
