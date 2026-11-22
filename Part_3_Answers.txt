@@ -1,0 +1,6 @@
+A team composed solely of computer engineering students would approach the project with a strong understanding of both the hardware and software aspects of the task. Given their experience in hardware-software interfaces, DMM, and performance optimizations, they would likely focus heavily on maximizing the speed and efficiency of rendering the graphics to improve fps, and optimizing the UI so it responds quickly to user input.
+
+The addition of network engineers would allow the team to add a multiplayer mode, as the network engineers would allow the team to create servers and synchronize the game across multiple different systems in order to create a cohesive multiplayer experience.
+
+ 
+
